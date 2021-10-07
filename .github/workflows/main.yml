@@ -3,6 +3,7 @@ name: Render RMarkdown Website
 jobs:
   build:
     runs-on: ubuntu-18.04
+    container: rocker/geospatial:latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@master
@@ -15,11 +16,15 @@ jobs:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         run: |-
           Rscript -e "rmarkdown::render_site(encoding = 'UTF-8')"
-#          echo "::set-env name=DEPLOY_PATH::$(Rscript -e "cat(rmarkdown::site_config()[['output_dir']])")"
-#      - name: Deploy to GitHub Pages
-#        if: github.ref == 'refs/heads/master'
-#        uses: maxheld83/ghpages@v0.2.0
-#        env:
-#          BUILD_DIR: $DEPLOY_PATH
-#          GH_PAT: ${{ secrets.GH_PAT }}
-    container: rocker/verse:latest
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/master'
+        uses: maxheld83/ghpages@v0.3.0
+        env:
+          BUILD_DIR: docs
+          GH_PAT: ${{ secrets.GH_PAT }}
+          BRANCH: gh-pages
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GH_PAT }}
+          publish_dir: docs
